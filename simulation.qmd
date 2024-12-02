@@ -1,0 +1,95 @@
+---
+title: "Simulation of Playing Craps"
+format: html
+---
+
+
+```{r echo=FALSE,warning=FALSE, message=FALSE}
+# Setting up:
+library(tidyverse)
+library(kableExtra)
+source("play-craps.R")
+```
+
+```{r}
+simulate_craps_game()
+```
+
+```{r}
+run_craps_simulation(N=2)
+```
+
+# Which Bet?
+
+$$ P(Win|First\;Point=4)$$
+
+# Results
+
+in numbers: 
+
+```{r}
+# Simulating 10,000 games
+sim_results <- run_craps_simulation(N = 10000)
+
+# Calculate probability of winning for first point = 3
+# sanity check should be zero
+result_point_3 <- calculate_win_probability(sim_results, specified_first_point= 3)
+result_point_3
+
+# Calculate probability of winning for first point = 4
+result_point_4 <- calculate_win_probability(sim_results, specified_first_point = 4)
+result_point_4
+```
+
+
+
+
+# Assessing simulation variability
+
+```{r}
+simulate_relative_frequencies_histogram <- function(n, m, first_point_input) {
+  # Simulate n * m games in total
+  sim_results <- run_craps_simulation(N = n * m)
+  
+  # Filter for games where the first roll (point) matches the specified first_point_input
+  games_with_point <- sim_results %>% filter(first_point == first_point_input)
+  
+  # Check if there are any games with the specified first point
+  if (nrow(games_with_point) == 0) {
+    stop("No games with the specified first point.")
+  }
+  
+  # Split the filtered games into n groups
+  games_with_point <- games_with_point %>%
+    mutate(group = rep(1:n, length.out = nrow(games_with_point)))
+  
+  # For each group, calculate the relative frequency of wins
+  relative_frequencies <- games_with_point %>%
+    group_by(group) %>%
+    summarise(relative_freq = mean(outcome == "win"), num_games = n()) %>%
+    ungroup()
+  
+  
+  # print(relative_frequencies)
+  
+  # Create a histogram of the relative frequencies
+  ggplot(relative_frequencies, aes(x = relative_freq)) +
+    geom_histogram(bins = 20, fill = "lightblue", color = "black") +
+    labs(
+      title = paste("Histogram of Relative Frequencies (First Point =", first_point_input, ")"),
+      x = "Relative Frequency of Wins",
+      y = "Count"
+    ) +
+    scale_x_continuous(labels = scales::percent_format()) +
+    theme_minimal()
+}
+
+# Parameters
+n <- 10  # Number of sets
+m <- 100  # Number of games to simulate per set
+
+# Visualize relative frequencies for first point = 4
+simulate_relative_frequencies_histogram(n = n, m = m, first_point_input = 4)
+
+```
+

@@ -1,28 +1,5 @@
----
-title: "Craps Simulation"
-format: html
----
-
-
-In this document, you should create, code, and demonstrate each function you described in [`pseudocode.qmd`](pseudocode.qmd).
-File your functions under the appropriate header. 
-Each function should have its own code chunk, which is properly set up with the appropriate programming language indicated.
-I have provided skeleton code chunks for your required functions using R syntax, but you are free to use Python or any other language covered in class. 
-
-Please delete or fill in my chunks with your own code.
-Make sure this document compiles before you submit your answers.
-
-```{r echo=FALSE,warning=FALSE, message=FALSE}
-# Setting up:
 library(tidyverse)
-# source("play-craps.R")
-```
 
-# Helper Functions
-
-## `roll_dice`
-
-```{r}
 roll_dice <- function() {
   # Input: None
   # Output: an integer from 2 to 12
@@ -30,18 +7,8 @@ roll_dice <- function() {
   
   sample(1:6, 2, replace = TRUE) %>% sum()
 }
-```
-
-```{r}
-roll_dice()
-```
 
 
-
-# Main Functions
-
-## `simulate_craps_game`
-```{r}
 simulate_craps_game <- function() {
   # Input: None
   # Output: A data frame with id, roll, and outcome for a single craps game
@@ -76,14 +43,11 @@ simulate_craps_game <- function() {
   
   return(rolls)
 }
-```
 
-```{r}
-simulate_craps_game()
-```
 
-## `summarize_craps_game`
-```{r}
+# simulate_craps_game()
+
+
 summarize_craps_game <- function(craps_data) {
   # Input: A data frame returned by `simulate_craps_game`
   # Output: A summary row with n_rolls, outcome, and point
@@ -95,14 +59,13 @@ summarize_craps_game <- function(craps_data) {
   
   return(data.frame(n_rolls = n_rolls, outcome = outcome, first_point = point))
 }
-```
 
-```{r}
-simulate_craps_game() %>% summarize_craps_game()
-```
 
-## `run_craps_simulation`
-```{r}
+# craps_data<-simulate_craps_game() 
+# craps_data%>% summarize_craps_game()
+
+
+
 run_craps_simulation <- function(N) {
   # Input: an integer N which determines the number of games to simulate
   # Output: A data frame summarizing the results of N craps games
@@ -111,10 +74,38 @@ run_craps_simulation <- function(N) {
   results <- lapply(1:N, function(x) simulate_craps_game() %>% summarize_craps_game())
   return(do.call(rbind, results))
 }
-```
 
-```{r}
-result <- run_craps_simulation(N=10) # demo
-result
-```
+# result <- run_craps_simulation(N = 5) # demonstrate result
+# result
+
+calculate_win_probability <- function(sim_results, specified_first_point) {
+  # Input: 
+  #   sim_results - A data frame of simulation results
+  #   first_point - The point (first roll value) to condition on
+  # Output:
+  #   A list containing the conditional probability of win, mean, and standard deviation
+  
+  # Filter for games where the first roll (point) matches the specified first_point
+  games_with_point <- sim_results %>% filter(first_point ==  specified_first_point)
+  
+  if (nrow(games_with_point) == 0) {
+    return(list(
+      Error = paste("No games with the first point =",  specified_first_point)
+    ))
+  }
+  
+  # Calculate the conditional probability of winning
+  p_win_given_point <- mean(games_with_point$outcome == "win")
+  
+  # Calculate mean and standard deviation of wins
+  mean_win <- p_win_given_point
+  sd_win <- sd(games_with_point$outcome == "win")
+  
+  # Return results as a list
+  return(list(
+    Probability_of_Win = p_win_given_point,
+    Mean = mean_win,
+    Standard_Deviation = sd_win
+  ))
+}
 
