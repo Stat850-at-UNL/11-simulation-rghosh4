@@ -172,6 +172,50 @@ roll_dice <- function() {
 
 Put each function in a separate code block.
 
+The below helper function is used later on in the assignment to calculate an estimate to an interesting conditional probability (described in the simulation file).
+
+```         
+calculate_win_probability<-function(sim_results,specified_first_point) {
+    # Input:
+        sim_results: A data frame summarizing the results of multiple games of craps.
+          Columns include:
+            - n_rolls: Number of rolls in each game.
+            - outcome: Result of each game ("win" or "loss").
+            - first_point: The value of the first roll in each game.
+        specified_first_point: An integer representing the specific first roll value to condition on.
+
+    # Output:
+        - A list containing:
+            - Probability_of_Win: The conditional probability of winning given the specified first_point.
+            - Mean: The mean of the outcomes (interpreted as probability).
+            - Standard_Deviation: The standard deviation of the outcomes.
+
+    # Description:
+        - Filters the simulation results for games with a specific first_point value and calculates the conditional probability of winning, along with mean and standard deviation.
+
+    STEP 1: Filter `sim_results` to include only rows where `first_point` matches `specified_first_point`.
+        - Use a filtering function (e.g., `filter(first_point == specified_first_point)`).
+
+    STEP 2: Check if any rows remain after filtering.
+        - If no rows remain, return an error message indicating no games were found for the specified first_point.
+
+    STEP 3: Calculate the conditional probability of winning.
+        - For the filtered data, compute the proportion of games where `outcome` is "win":
+            - p_win_given_point = mean(outcome == "win").
+
+    STEP 4: Calculate the mean and standard deviation of the win outcomes.
+        - Mean: Use the conditional probability of winning.
+        - Standard Deviation: Compute the standard deviation of the binary win/loss outcomes.
+
+    STEP 5: Combine the results into a list.
+        - Include:
+            - Probability_of_Win = p_win_given_point.
+            - Mean = p_win_given_point.
+            - Standard_Deviation = computed standard deviation.
+
+    STEP 6: Return the results list.
+```
+
 ## Planning Main Functions {#sec-main-function-diagram}
 
 Update your flowchart from @sec-flowchart to match the requirements of this section.
@@ -198,6 +242,40 @@ simulate_craps_game <- function() {
   # Input: None
   # Output: A data frame with `id`, `roll`, and `outcome` for a single game
   # Description: Simulates a single game of craps with detailed tracking of each roll.
+  
+      STEP 1: Roll the dice for the first time and store the result.
+        - Call roll_dice() to generate a random roll.
+        - Initialize a data frame with columns:
+            - id: Set to 1 for the first roll.
+            - roll: The result of the first dice roll.
+            - outcome: Set to "continue" initially.
+
+    STEP 2: Determine the outcome based on the first roll:
+        - If the first roll is 7 or 11:
+            - Set the outcome of the first roll to "win".
+        - Else if the first roll is 2, 3, or 12:
+            - Set the outcome of the first roll to "loss".
+        - Otherwise, set the first roll as the "point" and continue the game:
+            - Store the value of the first roll in a variable called "point".
+            - Set a variable "outcome" to "continue".
+
+    STEP 3: Enter a loop to simulate subsequent rolls if the game continues:
+        - While "outcome" is still "continue":
+            - Roll the dice again using roll_dice().
+            - Add a new row to the data frame with:
+                - id: Incremented roll number.
+                - roll: The result of the dice roll.
+                - outcome: Set to "continue" initially.
+
+            - Check the result of the roll:
+                - If the roll equals the "point":
+                    - Update the outcome of the current roll to "win".
+                    - Set "outcome" to "win" to exit the loop.
+                - Else if the roll is 7:
+                    - Update the outcome of the current roll to "loss".
+                    - Set "outcome" to "loss" to exit the loop.
+
+    STEP 4: Return the complete data frame containing all rolls and their outcomes.
 }
 ```
 
@@ -211,8 +289,29 @@ Add a function that summarizes a game of craps (e.g. go from the data structure 
 ```         
 summarize_craps_game <- function(craps_data) {
   # Input: Data frame from `simulate_craps_game`
-  # Output: A single-row summary with `n_rolls`, `outcome`, and `point`
+  # Output: A single-row summary with `n_rolls`, `outcome`, and `first_point`
   # Description: Summarizes a single game of craps.
+  
+  STEP 1: Calculate the total number of rolls in the game.
+        - Use the number of rows in the input data frame `craps_data` to determine the number of rolls:
+            - n_rolls = number of rows in `craps_data`.
+
+    STEP 2: Determine the final outcome of the game.
+        - Extract the last value in the "outcome" column of `craps_data`:
+            - outcome = last value in `craps_data$outcome`.
+
+    STEP 3: Extract the first roll value as the "point."
+        - Get the first value in the "roll" column of `craps_data`:
+            - first_point = first value in `craps_data$roll`.
+
+    STEP 4: Create a summary data frame.
+        - Combine the calculated values (n_rolls, outcome, first_point) into a single-row data frame:
+            - summary_data = data frame with:
+                - n_rolls = total number of rolls.
+                - outcome = final game outcome.
+                - first_point = value of the first roll.
+
+    STEP 5: Return the summary data frame.
 }
 ```
 
@@ -223,6 +322,19 @@ run_craps_simulation <- function(N) {
   # Input: Integer N for number of games
   # Output: Data frame summarizing the results of N games
   # Description: Runs N simulations of craps games and summarizes them.
+  
+  STEP 1: Initialize an empty list to store results of each game.
+
+    STEP 2: Loop from 1 to N:
+        - For each iteration:
+            - Call `simulate_craps_game()` to simulate a single game of craps.
+            - Pass the result to `summarize_craps_game()` to generate a summary row for that game.
+            - Append the summary row to the results list.
+
+    STEP 3: Combine all summary rows into a single data frame.
+        - Use a function like `do.call(rbind, results)` to combine rows.
+
+    STEP 4: Return the combined data frame containing summaries of all simulated games.
 }
 ```
 
